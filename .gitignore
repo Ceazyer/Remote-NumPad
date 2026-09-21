@@ -1,0 +1,10 @@
+bin/
+obj/
+.dotnet/
+.dotnet-home/
+.nuget/
+.appdata/
+publish/
+NuGet.Config
+Remote_NumPad_v0.1_开发执行说明.md
+

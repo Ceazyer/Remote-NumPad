@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**\*.cs" />
+    <Content Remove="tests\**\*" />
+    <None Remove="tests\**\*" />
+    <Content Remove="wwwroot\**\*" />
+    <None Remove="wwwroot\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="RemoteNumPad.Tests" />
+    <None Remove="NuGet.Config" />
+    <Content Remove="NuGet.Config" />
+    <EmbeddedResource Include="wwwroot\index.html" LogicalName="RemoteNumPad.wwwroot.index.html" />
+    <EmbeddedResource Include="wwwroot\style.css" LogicalName="RemoteNumPad.wwwroot.style.css" />
+    <EmbeddedResource Include="wwwroot\app.js" LogicalName="RemoteNumPad.wwwroot.app.js" />
+  </ItemGroup>
+</Project>
+

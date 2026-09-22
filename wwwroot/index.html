@@ -1,31 +1,88 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Remote NumPad</title>
+  <title>Excel 录入面板</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <main class="keypad" aria-label="Remote NumPad">
-    <h1>Remote NumPad</h1>
-    <section class="keys" aria-label="Numeric keyboard">
-      <button type="button" data-key="7">7</button>
-      <button type="button" data-key="8">8</button>
-      <button type="button" data-key="9">9</button>
-      <button type="button" data-key="4">4</button>
-      <button type="button" data-key="5">5</button>
-      <button type="button" data-key="6">6</button>
-      <button type="button" data-key="1">1</button>
-      <button type="button" data-key="2">2</button>
-      <button type="button" data-key="3">3</button>
-      <button type="button" data-key="0">0</button>
-      <button type="button" data-key=".">.</button>
-      <button type="button" data-key="BACKSPACE" aria-label="Backspace">⌫</button>
-      <button type="button" data-key="ENTER" class="enter">Enter</button>
+  <main class="panel" aria-label="Excel 录入面板">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">REMOTE NUMPAD v0.2</p>
+        <h1>Excel 录入面板</h1>
+      </div>
+      <span class="connection" data-connection>连接中…</span>
+    </header>
+
+    <section class="section-card" aria-labelledby="number-title">
+      <h2 id="number-title">数字输入</h2>
+      <div class="number-grid">
+        <button type="button" class="key number-key" data-command="7">7</button>
+        <button type="button" class="key number-key" data-command="8">8</button>
+        <button type="button" class="key number-key" data-command="9">9</button>
+        <button type="button" class="key utility-key" data-command="BACKSPACE" aria-label="退格">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 5H8l-5 7 5 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Zm-8.5 4.5 5 5m0-5-5 5" /></svg>
+        </button>
+
+        <button type="button" class="key number-key" data-command="4">4</button>
+        <button type="button" class="key number-key" data-command="5">5</button>
+        <button type="button" class="key number-key" data-command="6">6</button>
+        <button type="button" class="key utility-key" data-command="DELETE">清空</button>
+
+        <button type="button" class="key number-key" data-command="1">1</button>
+        <button type="button" class="key number-key" data-command="2">2</button>
+        <button type="button" class="key number-key" data-command="3">3</button>
+        <button type="button" class="key utility-key" data-command="EDIT">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 16.5-.8 4.3 4.3-.8L19 8.5 15.5 5 4 16.5Zm10.8-9.7 3.4 3.4M4 21h16" /></svg>
+          编辑
+        </button>
+
+        <button type="button" class="key number-key" data-command="0">0</button>
+        <button type="button" class="key number-key" data-command=".">.</button>
+        <button type="button" class="key number-key" data-command="-">−</button>
+        <button type="button" class="key enter-key" data-command="ENTER">Enter</button>
+      </div>
+    </section>
+
+    <section class="section-card" aria-labelledby="navigation-title">
+      <h2 id="navigation-title">单元格导航</h2>
+      <div class="navigation-grid">
+        <span class="grid-spacer"></span>
+        <button type="button" class="key navigation-key icon-key" data-command="UP" aria-label="向上"><span aria-hidden="true">↑</span></button>
+        <span class="grid-spacer"></span>
+        <button type="button" class="key navigation-key icon-key" data-command="LEFT" aria-label="向左"><span aria-hidden="true">←</span></button>
+        <button type="button" class="key navigation-key icon-key" data-command="DOWN" aria-label="向下"><span aria-hidden="true">↓</span></button>
+        <button type="button" class="key navigation-key icon-key" data-command="RIGHT" aria-label="向右"><span aria-hidden="true">→</span></button>
+      </div>
+      <div class="wide-grid">
+        <button type="button" class="key navigation-key" data-command="PREV_CELL">⇤ <span>上一格</span></button>
+        <button type="button" class="key navigation-key" data-command="NEXT_CELL"><span>下一格</span> ⇥</button>
+      </div>
+    </section>
+
+    <section class="section-card" aria-labelledby="edit-title">
+      <h2 id="edit-title">编辑操作</h2>
+      <div class="wide-grid three-column">
+        <button type="button" class="key action-key" data-command="UNDO">↶ <span>撤销</span></button>
+        <button type="button" class="key action-key" data-command="COPY"><span>复制</span></button>
+        <button type="button" class="key action-key" data-command="PASTE"><span>粘贴</span></button>
+      </div>
+    </section>
+
+    <section class="section-card" aria-labelledby="formula-title">
+      <h2 id="formula-title">公式工具</h2>
+      <div class="formula-grid">
+        <button type="button" class="key formula-key" data-command="AUTO_SUM">Σ 自动求和</button>
+        <button type="button" class="key formula-key" data-command="FORMULA_AVERAGE">平均值</button>
+        <button type="button" class="key formula-key" data-command="FORMULA_MAX">最大值</button>
+        <button type="button" class="key formula-key" data-command="FORMULA_MIN">最小值</button>
+        <button type="button" class="key formula-key" data-command="FORMULA_ROUND">四舍五入</button>
+        <button type="button" class="key formula-key" data-command="FORMULA_IF">条件判断</button>
+      </div>
     </section>
   </main>
   <script src="/app.js"></script>
 </body>
 </html>
-

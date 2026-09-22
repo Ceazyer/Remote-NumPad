@@ -59,9 +59,9 @@ app.Map("/ws", async context =>
                 continue;
             }
 
-            var key = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine($"Received Key: {key}");
-            keyboardService.SendKey(key);
+            var command = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            Console.WriteLine($"Received Command: {command}");
+            keyboardService.SendCommand(command);
         }
     }
     catch (WebSocketException)
@@ -91,4 +91,3 @@ static string ReadEmbeddedResource(string resourceName)
     using var reader = new StreamReader(stream, Encoding.UTF8);
     return reader.ReadToEnd();
 }
-

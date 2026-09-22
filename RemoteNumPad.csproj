@@ -2,10 +2,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
+    <Version>0.2.0</Version>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <InformationalVersion>0.2.0</InformationalVersion>
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -29,4 +31,3 @@
     <EmbeddedResource Include="wwwroot\app.js" LogicalName="RemoteNumPad.wwwroot.app.js" />
   </ItemGroup>
 </Project>
-

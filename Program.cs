@@ -1,93 +1,38 @@
-using System.Net.WebSockets;
-using System.Reflection;
-using System.Text;
-using RemoteNumPad;
+using System.Windows.Forms;
+using RemoteNumPad.Desktop;
 using RemoteNumPad.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(8765));
-builder.Services.AddSingleton<KeyboardService>();
+namespace RemoteNumPad;
 
-var app = builder.Build();
-app.UseWebSockets();
-
-app.MapGet("/", () => Results.Content(
-    ReadEmbeddedResource("RemoteNumPad.wwwroot.index.html"),
-    "text/html",
-    Encoding.UTF8));
-app.MapGet("/style.css", () => Results.Content(
-    ReadEmbeddedResource("RemoteNumPad.wwwroot.style.css"),
-    "text/css",
-    Encoding.UTF8));
-app.MapGet("/app.js", () => Results.Content(
-    ReadEmbeddedResource("RemoteNumPad.wwwroot.app.js"),
-    "text/javascript",
-    Encoding.UTF8));
-
-app.Map("/ws", async context =>
+internal static class Program
 {
-    var keyboardService = context.RequestServices.GetRequiredService<KeyboardService>();
-    if (!context.WebSockets.IsWebSocketRequest)
+    [STAThread]
+    private static void Main()
     {
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        return;
-    }
-
-    using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var buffer = new byte[1024];
-
-    try
-    {
-        while (socket.State == WebSocketState.Open)
+        ApplicationConfiguration.Initialize();
+        using var instance = new Mutex(true, @"Local\RemoteNumPad.Receiver", out var primary);
+        if (!primary)
         {
-            var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
-            if (result.MessageType == WebSocketMessageType.Close)
+            for (var retry = 0; retry < 10; retry++)
             {
-                if (socket.State == WebSocketState.Open)
-                {
-                    await socket.CloseAsync(
-                        WebSocketCloseStatus.NormalClosure,
-                        "Connection closed",
-                        CancellationToken.None);
-                }
-
-                break;
+                try { using var signal = EventWaitHandle.OpenExisting(@"Local\RemoteNumPad.ShowPanel"); signal.Set(); return; }
+                catch (WaitHandleCannotBeOpenedException) { Thread.Sleep(100); }
             }
-
-            if (result.MessageType != WebSocketMessageType.Text)
-            {
-                continue;
-            }
-
-            var key = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine($"Received Key: {key}");
-            keyboardService.SendKey(key);
+            MessageBox.Show("接收端正在启动，请稍后从托盘打开。", "Remote NumPad");
+            return;
         }
+        using var showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\RemoteNumPad.ShowPanel");
+        var server = new ReceiverServer();
+        try
+        {
+            using var window = new ReceiverWindow(server);
+            var registration = ThreadPool.RegisterWaitForSingleObject(showSignal, (_, _) => {
+                if (window.IsHandleCreated && !window.IsDisposed)
+                    window.BeginInvoke(new Action(window.ShowPanel));
+            }, null, Timeout.Infinite, false);
+            try { Application.Run(window); }
+            finally { registration.Unregister(null); }
+        }
+        finally { Task.Run(async () => await server.DisposeAsync()).GetAwaiter().GetResult(); instance.ReleaseMutex(); }
     }
-    catch (WebSocketException)
-    {
-        // A phone can disappear without completing the WebSocket close handshake.
-    }
-    catch (OperationCanceledException)
-    {
-        // The request was cancelled while the phone was disconnected.
-    }
-});
-
-Console.WriteLine("Remote NumPad Server Started");
-Console.WriteLine();
-Console.WriteLine("Open this address on your phone:");
-var privateAddress = NetworkAddress.FindPrivateIpv4Address();
-Console.WriteLine(privateAddress is null
-    ? "No private IPv4 address found. Check the computer's network settings."
-    : $"http://{privateAddress}:8765");
-
-await app.RunAsync();
-
-static string ReadEmbeddedResource(string resourceName)
-{
-    using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
-        ?? throw new InvalidOperationException($"Embedded resource not found: {resourceName}");
-    using var reader = new StreamReader(stream, Encoding.UTF8);
-    return reader.ReadToEnd();
 }

@@ -1,0 +1,13 @@
+<resources>
+    <color name="surface">#F2F3F7</color>
+    <color name="panel">#F2F3F7</color>
+    <color name="key_surface">#F2F3F7</color>
+    <color name="key_action">#F2F3F7</color>
+    <color name="accent">#99600F</color>
+    <color name="accent_pressed">#066452</color>
+    <color name="text_primary">#242A36</color>
+    <color name="text_secondary">#626977</color>
+    <color name="status_ok">#28735E</color>
+    <color name="status_warn">#925918</color>
+    <color name="status_error">#B83244</color>
+</resources>

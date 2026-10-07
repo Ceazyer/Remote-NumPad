@@ -2,6 +2,8 @@
 
 Remote NumPad 是一个仅供局域网使用的 Excel/WPS 录入面板。电脑运行 ASP.NET Core 服务，Windows 端使用 `SendInput` 将操作交给当前活动窗口。手机可使用原有浏览器端，或安装 Android 原生 APK；原生端不是 WebView 套壳。
 
+开发入口见 [AGENTS.md](AGENTS.md)，当前进度见 [项目状态](docs/project-status.md)，开发与发布规则见 [开发规则](docs/development-rules.md)，已有证据见 [验证台账](docs/verification-log.md)。按任务读取相关文档即可，不需重复加载全部历史。
+
 ## 运行 Windows 接收端 v1.3.0
 
 Windows x64 自包含单文件程序仍可直接运行：
@@ -24,7 +26,7 @@ Windows x64 自包含单文件程序仍可直接运行：
 
 ## Android 原生端 v1.3.0
 
-- 电脑端须运行新版 `publish/v1.3.0/windows/RemoteNumPad.exe`。在手机连接设置中扫码确认电脑地址/端口，或者手动填写；握手成功后保存设置。端口修改后重新扫码即可。
+- 电脑端须解压 `publish/v1.3.0/RemoteNumPad-1.3.0-windows-x64.zip` 并运行其中的 `RemoteNumPad.exe`（重新构建时输出到 `publish/v1.3.0/windows/`）。在手机连接设置中扫码确认电脑地址/端口，或者手动填写；握手成功后保存设置。端口修改后重新扫码即可。
 - Android 工程位于 [`android`](android)，使用 Kotlin、原生 Android Views 和 OkHttp WebSocket，不包含 WebView、电脑 EXE 或工作簿数据。
 - 项目源代码使用 MIT 许可；OkHttp 依赖采用 Apache-2.0，许可证文本同时随源码与 APK 提供，见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 - Android Studio 打开 `android` 目录，选择 **Build > Build APK(s)**。命令行可运行 `cd android; .\gradlew.bat testDebugUnitTest assembleDebug assembleDebugAndroidTest`。
@@ -51,9 +53,11 @@ Windows x64 自包含单文件程序仍可直接运行：
 - .NET 8 SDK
 - 手机和电脑连接同一个局域网 / Wi-Fi
 
-```bash
+以下是按需示例，不是每次修改都必须全跑。纯文档不运行应用测试/构建；功能修改选择相关回归并记录证据。基础集合含真实按键测试，默认必须排除，避免向当前用户窗口输入。
+
+```powershell
 dotnet build
-dotnet test tests/RemoteNumPad.Tests/RemoteNumPad.Tests.csproj
+dotnet test tests/RemoteNumPad.Tests/RemoteNumPad.Tests.csproj --filter "FullyQualifiedName!~SendKeyDoesNotThrowWhenWindowsRejectsInput"
 ```
 
 Android 本地队列/命令映射测试与 APK 构建：
@@ -63,9 +67,11 @@ cd .\android
 .\gradlew.bat testDebugUnitTest assembleDebug assembleDebugAndroidTest
 ```
 
-连接 Android 真机或模拟器后，可运行 `.\gradlew.bat connectedDebugAndroidTest` 验证原生触摸与 SQLite 持久化。
+原生触摸与 SQLite 仪器测试仅在明确选择的可丢弃模拟器运行；不要对未指定的连接设备批量安装/清数据，见 [安卓验收](docs/android-testing.md)。
 
 ## 重新发布 EXE
+
+仅在当前任务授权正式封包时执行；新版本须同步目录与版本名。用户明确确认具体正式版本后，按开发规则自动授权该版本一次源码 push，不自动授权上传公开二进制附件。
 
 ```powershell
 dotnet publish .\RemoteNumPad.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -o .\publish\v1.3.0\windows

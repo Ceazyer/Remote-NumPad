@@ -1,65 +1,62 @@
-# Android 1.2.2 installation and test checklist
+# Android 1.3.0 安装与安全验收
 
-## Install the debug APK
+## 安装正式包
 
-Build it on the development PC from the repository root:
+正式包为 `publish/v1.3.0/RemoteNumPad-1.3.0-release.apk`，支持 Android API 26 及以上、目标 API 36。复制到手机打开安装；系统可能要求允许当前文件管理器安装应用。
 
-```powershell
-cd .\android
-.\gradlew.bat testDebugUnitTest assembleDebug assembleDebugAndroidTest
-```
+正式签名与旧 Debug 不同：先处理完待发送输入、记下连接设置，再由用户自行卸载旧调试版。卸载删除设置与队列；代理不得擅自卸载/清数据。后续正式版沿用同一签名，见 [签名说明](release-signing.md)。
 
-With Android platform-tools installed and an authorized phone connected by USB, install from the repository root:
+## 连接设置
 
-```powershell
-$adb = Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe'
-& $adb devices
-& $adb install -r .\android\app\build\outputs\apk\debug\app-debug.apk
-```
+1. 解压 `publish/v1.3.0/RemoteNumPad-1.3.0-windows-x64.zip` 运行 `RemoteNumPad.exe`。GUI 显示实际接收状态、网卡地址/端口；默认 8765，但以实际生效值为准。
+2. 手机与 PC 使用可信同一私有 Wi-Fi。安卓设置扫码或手动填私有 IPv4/端口，确认连接；握手成功才保存。有队列先明确处理方式。
+3. PC 修改端口后 QR 自动刷新，安卓需重新扫码/改端口。关闭/最小化面板只是隐藏到托盘，托盘“退出程序”才释放端口，不再输入 Q/exit。
+4. 录入前切到可丢弃记事本文档或测试工作簿，避免测试键落到真实数据窗口。安卓可选显示本次点击/入队/发送/确认计数，但不证明 Excel 的最终结果。
+5. Windows GUI 有连接数与状态日志，没有旧环境变量开启的控制台命令/ACK 累积计数；不能拿连接数证明按键数量。
 
-Alternatively, copy `android/app/build/outputs/apk/debug/app-debug.apk` to the phone and open it. The app uses a debug signing key; Android may ask to allow installation from that file manager. It targets API 36 and supports Android API 26 and later. It is not a store/release-signed build.
+一直重连时核对服务正在接收、实际地址/端口一致、网络互通。手机浏览器先打开面板显示的 `http://私有IPv4:端口/`；打不开再排查网络隔离/入站策略，不自动改防火墙。网页可打开却卡在原生校验时，核对运行的是新版 v2 兼容 EXE。网络变化后 PC 地址可能变化。
 
-## Safe connection setup
+## 真机手动验收（可丢弃目标）
 
-1. Start the Windows Remote NumPad service from `publish/android-1.2.2-win-x64/RemoteNumPad.exe`. The earlier `publish/win-x64/RemoteNumPad.exe` build does not support the Android v2 handshake. Keep the phone and PC on the same trusted private Wi-Fi. The PC displays its LAN address; use that IPv4 address and port `8765`. When finished, type `Q` and press Enter in the receiver window to exit.
-2. Before sending keys, bring a disposable test target such as Notepad or a throwaway workbook to the foreground. The Windows service injects into whichever app currently has keyboard focus; it cannot protect an existing workbook from test input.
-3. Open Android **设置**, enter the PC's private IPv4 address and port, and choose **保存并连接**. Wait for the status to show connected. The keypad never opens the soft keyboard.
-4. For visible phone-side counts, enable **显示本次启动的链路计数** in that settings dialog. This is off by default and counts only clicks, durable enqueues, sends, and ACKs for the current app process.
-5. Optional Windows-side cumulative diagnostics: start the Windows service from PowerShell as shown below:
+记录开始/结束计数及电脑实际文本/单元格结果；历史模拟器通过不代表以下完成。
 
-```powershell
-$env:REMOTENUMPAD_DIAGNOSTICS = '1'
-& .\RemoteNumPad.exe
-```
+1. 同一数字快速点 100 次，再交替数字点 100 次，核对顺序、数量、无重复。链路计数仅作辅助证据。
+2. 输入短数字后 Enter、下一格/方向移动，在测试工作簿核对结果；保存/另存只对该测试文件操作。
+3. 断网/停服务后点击应保留队列；恢复先核对目标及人工提示，不盲目继续。重启 PC/安卓后未完成项须审核。
+4. 完整失败可显式重试；不确定项先核对再使用明确的跳过操作，不能自动重放。清空未消费项可能造成 `sequence_gap`，不是通用恢复方案；断档时停止，不反复重试/清空或卸载，见 [协议限制](android-protocol.md)。
+5. 可选轻触反馈仅成功持久入队触发，队列满/非法输入不反馈；系统可能合并高频震动，不能证明网络或 Excel 成功。
+6. 首次扫码按需申请权限，拒绝可手动连接，返回释放相机；测试真实对焦、无效/外网 QR 拒绝和修改端口后的新 QR。
 
-The server prints cumulative v2 received-command, complete-injection, and ACK-send counters. They contain counts only, not entered values, workbook data, device IDs, or host addresses. A received-command total can include retries; compare it with injection success and ACK totals rather than interpreting it alone.
+## 按需自动检查
 
-If the phone continues to show **正在重新连接电脑**, check that the new Windows service is still running and listening on port `8765`, that the phone is using the PC's current Wi-Fi IPv4 address without `http://` or `ws://`, and that the network permits phone-to-PC traffic. If the phone remains on **连接已建立，正在校验服务**, verify that the running EXE is the new v2-compatible build. The PC's Wi-Fi IPv4 address can change when the network changes.
+选择与复用见 [开发规则](development-rules.md)、[验证台账](verification-log.md)。不要每次修改都全跑；纯文档不执行下面命令。
 
-For a quick network check, open `http://<PC-Wi-Fi-IPv4>:8765` in the phone's browser. If the Remote NumPad page does not load, confirm both devices are on the same Wi-Fi and check for client isolation or inbound firewall policy. If it loads, return to the native app and re-enter the same numeric IPv4 address and port in **设置**.
-
-## Manual acceptance
-
-Record starting and ending counters and verify the actual visible test-target text after each case:
-
-1. Tap the same digit rapidly 100 times. Expected: the target receives 100 copies in order, the phone reports `点击 100 · 入队 100`, and after ACK completion `已发` and `确认` both reach 100.
-2. Tap an alternating sequence of digits 100 times. Expected: exact tap order and count are preserved; no digit is missing, duplicated, or reordered.
-3. In a throwaway workbook only, enter a short number followed by **Enter**, then test **下一格**. Check both the typed value and selected-cell movement.
-4. During a disposable input test, disconnect Wi-Fi or stop the PC service. New clicks should remain queued and visible, not disappear. Restore the same server and explicitly confirm the review prompt before continuing.
-5. With pending input, restart the PC service or terminate/reopen the Android app. A changed server instance or recovered pending queue must require review before sending. Never blindly approve old input if the selected cell may have changed.
-6. If a command reports a complete failure, check the foreground test target and retry explicitly. For an **uncertain** result, inspect the target first, then skip the uncertain item or clear the queue; do not automatically replay it.
-
-To run native UI-touch and SQLite persistence instrumentation tests on an authorized connected device/emulator:
+仓库根目录，先配置 Android Studio JBR (`JAVA_HOME`) 与 SDK (`ANDROID_HOME` 或私有 `android/local.properties`)：
 
 ```powershell
-cd .\android
-..\.tools\gradle-9.6.0\bin\gradle.bat connectedDebugAndroidTest --no-daemon
+.\android\gradlew.bat -p android testDebugUnitTest
+.\android\gradlew.bat -p android :app:lintDebug
 ```
 
-Or use the project wrapper with `.gradlew.bat connectedDebugAndroidTest` after wrapper dependencies are available. These tests include 100 rapid synthetic taps and SQLite reopen checks; they do not replace the real touchscreen acceptance above.
+需要调试构建/仪器测试包时：
 
-## Limits and current status
+```powershell
+.\android\gradlew.bat -p android assembleDebug assembleDebugAndroidTest
+```
 
-- LAN WebSocket uses plaintext `ws://`, has no authentication, and should only be used on a trusted private network.
-- An `injected` ACK confirms that all expected `SendInput` events entered the Windows input stream. It does not confirm the target app, Excel/WPS focus, cell selection, or resulting workbook contents.
-- Android queue/SQLite JVM tests and server protocol tests are automated. An API 36 emulator is configured for layout, theme and synthetic-touch instrumentation checks. Real touchscreen speed, Excel/WPS behavior, and hardware/network interruption tests remain for the user to run.
+Debug APK 为 `android/app/build/outputs/apk/debug/app-debug.apk`，不是正式包。仪器测试包含 SQLite 操作，仅在已确认归属的可丢弃模拟器安装/运行。下面通过 `-s` 明确目标；先核对列表，再填写实际模拟器序列号，不能改成未经检查的真机：
+
+```powershell
+$numpadAdb = Join-Path $env:LOCALAPPDATA 'Android/Sdk/platform-tools/adb.exe'
+& $numpadAdb devices
+$numpadTestSerial = Read-Host '输入已确认归属的可丢弃模拟器序列号'
+& $numpadAdb -s $numpadTestSerial install -r .\android\app\build\outputs\apk\debug\app-debug.apk
+& $numpadAdb -s $numpadTestSerial install -r .\android\app\build\outputs\apk\androidTest\debug\app-debug-androidTest.apk
+& $numpadAdb -s $numpadTestSerial shell am instrument -w com.remotenumpad.test/android.test.InstrumentationTestRunner
+```
+
+不同签名导致安装失败时停止，不自动卸载；改选已批准的可丢弃模拟器或询问用户。不要执行不区分设备的批量连接测试；合成触摸不替代真机验收。
+
+## 边界
+
+局域网 `ws://` 明文且无身份认证，二维码不是安全配对。ACK 只确认完整键盘事件插入，不确认焦点、Excel/WPS 接收或工作簿内容；只在可信网络及测试数据上验收。

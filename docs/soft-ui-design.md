@@ -46,5 +46,5 @@
 
 - `node --test tests/mobile-viewport.test.cjs`：5 种视口、两页、两种主题、0 跨列、主题保存、100 次点击与控制按钮不发送命令。
 - Android `testDebugUnitTest`：命令目录和持久队列。
-- Android `connectedDebugAndroidTest`：真实布局尺寸/位置、主题选择、100 次合成触摸、SQLite 重开。
+- Android 仪器测试：布局尺寸/位置、主题、100 次合成触摸、SQLite 重开；测试会操作队列数据库与设置，仅按 [指定可丢弃模拟器流程](android-testing.md) 执行，不使用未区分设备的连接测试入口。
 - 浏览器命令测试采用测试 WebSocket；模拟器触摸测试不等于真机或 Excel/WPS 验收。
